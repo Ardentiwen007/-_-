@@ -50,7 +50,7 @@ ENEMIES = [
     {"name": "Зомби", "hp": 14, "armor": 13, "attack_bonus": 5, "exp": 18, "gold": 9},
     {"name": "Огр", "hp": 22, "armor": 16, "attack_bonus": 7, "exp": 35, "gold": 20},
 
-    # Только боссы имеют is_boss: True
+    
     {"name": "Капитан Гоблинов", "hp": 30, "armor": 17, "attack_bonus": 8, "exp": 100, "gold": 50, "is_boss": True},
     {"name": "Лич", "hp": 40, "armor": 18, "attack_bonus": 9, "exp": 150, "gold": 100, "is_boss": True},
     {"name": "Дракон", "hp": 60, "armor": 20, "attack_bonus": 12, "exp": 300, "gold": 200, "is_boss": True}
@@ -71,3 +71,30 @@ DUNGEON_LEVELS = [
 
 SAVE_FILE = "save.json"
 MAX_LEVEL = 10
+
+# === ЗАПУСК ИГРЫ ===
+def main():
+    print("=== Добро пожаловать в Подземелье ===\n")
+    print("1. Начать новую игру")
+    print("2. Загрузить игру")
+    print("3. Выйти")
+    choice = input("Ваш выбор: ")
+
+    if choice == "1":
+        player = create_character()
+    elif choice == "2":
+        player = load_game()
+        if not player:
+            player = create_character()
+    elif choice == "3":
+        print("Выход из игры.")
+        return
+    else:
+        print("Неверный выбор.")
+        return
+
+    dungeon_adventure(player)
+
+
+if __name__ == "__main__":
+    main()
