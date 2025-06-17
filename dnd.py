@@ -57,21 +57,41 @@ ENEMIES = [
 ]
 
 DUNGEON_LEVELS = [
-    [ENEMIES[0]],                         # Уровень 1 — Гоблин
-    [ENEMIES[0], ENEMIES[1]],            # Уровень 2 — Гоблин, Скелет
-    [ENEMIES[1], ENEMIES[2]],            # Уровень 3 — Скелет, Тролль
-    [ENEMIES[2], ENEMIES[3]],            # Уровень 4 — Тролль, Паук
-    [ENEMIES[6]],                        # Уровень 5 — Капитан Гоблинов (босс)
-    [ENEMIES[3], ENEMIES[4], ENEMIES[5]],# Уровень 6 — Паук, Зомби, Огр
-    [ENEMIES[4], ENEMIES[5]],           # Уровень 7 — Зомби, Огр
-    [ENEMIES[5], ENEMIES[7]],           # Уровень 8 — Огр, Лич
-    [ENEMIES[7]],                        # Уровень 9 — Лич
-    [ENEMIES[8]]                         # Уровень 10 — Дракон (финальный босс)
+    [ENEMIES[0]],                         # Уровень 1
+    [ENEMIES[0], ENEMIES[1]],             # Уровень 2
+    [ENEMIES[1], ENEMIES[2]],             # Уровень 3
+    [ENEMIES[2], ENEMIES[3]],             # Уровень 4
+    [ENEMIES[5]],                         # Уровень 5 
+    [ENEMIES[3], ENEMIES[4], ENEMIES[5]], # Уровень 6
+    [ENEMIES[4], ENEMIES[5]],             # Уровень 7
+    [ENEMIES[6]],                         # Уровень 8 
+    [ENEMIES[6], ENEMIES[0], ENEMIES[1]], # Уровень 9
+    [ENEMIES[7]]                          # Уровень 10 
 ]
 
 SAVE_FILE = "save.json"
 MAX_LEVEL = 10
+# === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
+def roll_d20():
+    return random.randint(1, 20)
 
+
+def save_game(player):
+    with open(SAVE_FILE, "w") as f:
+        json.dump(player, f)
+    print("Игра успешно сохранена!\n")
+
+
+def load_game():
+    if not os.path.exists(SAVE_FILE):
+        print("Сохранённый файл не найден.\n")
+        return None
+    with open(SAVE_FILE, "r") as f:
+        player = json.load(f)
+    print("Игра загружена!")
+    print(f"Класс: {player['class'].capitalize()}, HP: {player['current_hp']}/{player['max_hp']}, Уровень: {player['level']}\n")
+    return player
+    
 # === ЗАПУСК ИГРЫ ===
 def main():
     print("=== Добро пожаловать в Подземелье ===\n")
