@@ -183,7 +183,32 @@ def combat(player, enemy):
             print("☠️ Вы погибли... Игра окончена.")
             exit()
 
-    return False    
+    return False
+    
+# === СИСТЕМА ОПЫТА И УРОВНЕЙ ===
+def gain_exp(player, amount):
+    player["experience"] += amount
+    print(f"Вы получили {amount} опыта.")
+    level_up(player)
+
+
+def level_up(player):
+    exp_needed = player["level"] * 20
+    while player["experience"] >= exp_needed:
+        player["experience"] -= exp_needed
+        player["level"] += 1
+        player["max_hp"] += 2
+        player["current_hp"] = player["max_hp"]
+        player["attack_bonus"] += 1
+        print(f"Вы достигли уровня {player['level']}!")
+        print(f"HP увеличен до {player['max_hp']}, Атака: +{player['attack_bonus']}\n")
+        if player["level"] >= MAX_LEVEL:
+            print("Вы достигли максимального уровня! Подземелье побеждено!")
+            input("Нажмите Enter для выхода...")
+            exit()
+        exp_needed = player["level"] * 20 
+
+
 # === ЗАПУСК ИГРЫ ===
 def main():
     print("=== Добро пожаловать в Подземелье ===\n")
