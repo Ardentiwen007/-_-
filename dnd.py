@@ -116,7 +116,74 @@ def create_character():
             return player
         else:
             print("Неверный класс. Попробуйте снова.")
-    
+
+# === БОЙ С ВРАГОМ ===
+def combat(player, enemy):
+    print(f"\nВы встретили {enemy['name']}!")
+    if enemy.get("is_boss", False):
+        print(f"⚠️ Это босс уровня {player['level']}! Приготовьтесь к тяжёлому бою.")
+
+    while player["current_hp"] > 0 and enemy["hp"] > 0:
+        # Показываем текущий статус
+        print("\n--- БОЙ ---")
+        print(f"{enemy['name']} — {enemy['hp']} HP | Вы — {player['current_hp']} HP")
+        print("Что вы делаете?")
+        print("1. Атаковать")
+        print("2. Использовать предмет")
+        print("3. Убежать")
+
+        choice = input("Ваш выбор: ")
+
+        if choice == "1":
+            attack_roll = roll_d20() + player["attack_bonus"]
+            print(f"\nВы бросаете кубик атаки: {attack_roll - player['attack_bonus']} + {player['attack_bonus']} = {attack_roll}")
+            if attack_roll >= enemy["armor"]:
+                dmg = random.randint(1, 6) + 1
+                print(f"🎯 Вы попали! Нанесено {dmg} урона.")
+                enemy["hp"] -= dmg
+            else:
+                print("❌ Промах!")
+
+        elif choice == "2":
+            use_item(player)
+            continue
+
+        elif choice == "3":
+            print("Вы пытаетесь убежать...")
+            if random.random() < 0.5:
+                print("🎉 Вам удалось сбежать!")
+                return False
+            else:
+                print("🛑 Не получилось убежать. Враг блокировал путь.")
+                pass
+        else:
+            print("Неверный выбор. Попробуйте снова.")
+            continue
+
+        if enemy["hp"] <= 0:
+            print(f"\n💀 {enemy['name']} повержен!")
+            gain_exp(player, enemy["exp"])
+            loot_gold(player, enemy)
+            if enemy.get("is_boss"):
+                print("🎉 Вы получили особую награду за победу над боссом!")
+                special_boss_loot(player, enemy)
+            return True
+
+        # Ход врага
+        attack_roll_enemy = roll_d20() + enemy["attack_bonus"]
+        print(f"\n{enemy['name']} бросает атаку: {attack_roll_enemy - enemy['attack_bonus']} + {enemy['attack_bonus']} = {attack_roll_enemy}")
+        if attack_roll_enemy >= player["armor"]:
+            dmg = random.randint(1, 6)
+            print(f"💥 {enemy['name']} ударил вас! Получено {dmg} урона.")
+            player["current_hp"] -= dmg
+        else:
+            print(f"{enemy['name']} промахнулся!")
+
+        if player["current_hp"] <= 0:
+            print("☠️ Вы погибли... Игра окончена.")
+            exit()
+
+    return False    
 # === ЗАПУСК ИГРЫ ===
 def main():
     print("=== Добро пожаловать в Подземелье ===\n")
