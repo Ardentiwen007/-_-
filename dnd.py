@@ -91,6 +91,31 @@ def load_game():
     print("Игра загружена!")
     print(f"Класс: {player['class'].capitalize()}, HP: {player['current_hp']}/{player['max_hp']}, Уровень: {player['level']}\n")
     return player
+# === СОЗДАНИЕ ПЕРСОНАЖА ===
+def create_character():
+    print("Выберите класс:")
+    for cls in CLASSES:
+        print(f"- {cls.capitalize()}")
+    while True:
+        choice = input("Ваш выбор: ").lower()
+        if choice in CLASSES:
+            stats = CLASSES[choice]
+            player = {
+                "class": choice,
+                "max_hp": stats["hp"],
+                "current_hp": stats["hp"],
+                "armor": stats["armor"],
+                "attack_bonus": stats["attack_bonus"],
+                "gold": 0,
+                "level": 1,
+                "experience": 0,
+                "inventory": []
+            }
+            print(f"\nВы выбрали {choice.capitalize()}!")
+            print(f"HP: {player['current_hp']}, Броня: {player['armor']}, Атака: +{player['attack_bonus']}\n")
+            return player
+        else:
+            print("Неверный класс. Попробуйте снова.")
     
 # === ЗАПУСК ИГРЫ ===
 def main():
