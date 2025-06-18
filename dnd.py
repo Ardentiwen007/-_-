@@ -96,8 +96,10 @@ def create_character():
     print("Выберите класс:")
     for cls in CLASSES:
         print(f"- {cls.capitalize()}")
+    
     while True:
         choice = input("Ваш выбор: ").lower()
+        
         if choice in CLASSES:
             stats = CLASSES[choice]
             player = {
@@ -197,16 +199,15 @@ def level_up(player):
     while player["experience"] >= exp_needed:
         player["experience"] -= exp_needed
         player["level"] += 1
+        exp_needed = player["level"] * 20  # Обновляем порог опыта
         player["max_hp"] += 2
         player["current_hp"] = player["max_hp"]
         player["attack_bonus"] += 1
-        print(f"Вы достигли уровня {player['level']}!")
+        print(f"\n🎉 Вы достигли уровня {player['level']}!")
         print(f"HP увеличен до {player['max_hp']}, Атака: +{player['attack_bonus']}\n")
-        if player["level"] >= MAX_LEVEL:
-            print("Вы достигли максимального уровня! Подземелье побеждено!")
-            input("Нажмите Enter для выхода...")
-            exit()
-        exp_needed = player["level"] * 20 
+
+    # Сохраняем текущий порог опыта до следующего уровня
+    player["exp_needed"] = exp_needed
 
 # === СУНДУКИ И ИНВЕНТАРЬ ===
 def open_chest(player):
