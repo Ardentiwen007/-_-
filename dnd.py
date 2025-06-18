@@ -452,7 +452,63 @@ def encounter_npc(player):
         print("⚠️ Это задание будет проверено в конце уровня.")
         player["current_quest"] = "no_combat"
         player["quest_complete"] = False
+# === Появление торговца ===
+def visit_merchant(player):
+    print("\n--- Вы встретили торговца ---")
+    while True:
+        print("\n1. Купить предмет")
+        print("2. Продать предмет")
+        print("3. Выйти")
+        choice = input("Ваш выбор: ")
 
+        if choice == "1":
+            print("\nНа продаже:")
+            for i, (item, price) in enumerate(ITEM_PRICES.items()):
+                print(f"{i+1}. {item} — {price} золотых")
+
+            try:
+                buy_choice = int(input("Введите номер предмета для покупки: ")) - 1
+                item_name = list(ITEM_PRICES.keys())[buy_choice]
+                price = ITEM_PRICES[item_name]
+
+                if player["gold"] >= price:
+                    player["inventory"].append(item_name)
+                    player["gold"] -= price
+                    print(f"Вы купили {item_name} за {price} золотых.")
+                else:
+                    print("Недостаточно золота.")
+            except (IndexError, ValueError):
+                print("Неверный выбор.")
+
+        elif choice == "2":
+            if not player["inventory"]:
+                print("Инвентарь пуст.")
+                continue
+
+            print("\nВаш инвентарь:")
+            for i, item in enumerate(player["inventory"]):
+                price = ITEM_PRICES.get(item, 5)
+                print(f"{i+1}. {item} — {price // 2} золотых")
+
+            try:
+                sell_choice = int(input("Введите номер предмета для продажи: ")) - 1
+                item = player["inventory"][sell_choice]
+                price = ITEM_PRICES.get(item, 5) // 2
+
+                confirm = input(f"Продать {item} за {price} золотых? (да/нет): ").lower()
+                if confirm == "да":
+                    player["inventory"].pop(sell_choice)
+                    player["gold"] += price
+                    print(f"Вы получили {price} золотых за {item}.")
+            except (IndexError, ValueError):
+                print("Неверный выбор.")
+
+        elif choice == "3":
+            print("Вы покидаете торговца.")
+            break
+
+        else:
+            print("Неверный выбор.")
 # === ЗАПУСК ИГРЫ ===
 def main():
     print("=== Добро пожаловать в Подземелье ===\n")
