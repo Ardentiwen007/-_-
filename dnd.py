@@ -284,6 +284,175 @@ def show_status(player):
     print(f"Уровень: {player['level']} | Опыт: {player['experience']}")
     print("------------------------\n")
 
+# === ОСНОВНОЙ ЦИКЛ ИГРЫ ===
+def dungeon_adventure(player):
+    current_level = 1
+    max_levels = len(DUNGEON_LEVELS)
+
+    while current_level <= max_levels:
+        print(f"\n--- Уровень {current_level} подземелья ---")
+        
+        # Определяем количество комнат: от 1 до 3, но на 5 и 10 уровне только 1
+        if current_level in [5, 10]:
+            total_rooms = 1
+        else:
+            total_rooms = random.randint(1, 3)
+        
+        rooms_cleared = 0
+
+        # Показываем количество комнат на уровне
+        print(f"На этом уровне {total_rooms} {'комната' if total_rooms == 1 else 'комнаты'}.")
+
+        # Вызов торговца на 3 и 8 уровне
+        if current_level in [3, 8] and total_rooms > 0:
+            print("Вы входите в тёмную пещеру... и видите кого-то вдалеке.")
+            visit_merchant(player)
+
+        while rooms_cleared < total_rooms:
+            show_status(player)
+            print("\n1. Продвинуться вперёд")
+            print("2. Отдохнуть")
+            print("3. Использовать предмет")
+            print("4. Сохранить игру")
+            print("5. Выйти из игры")
+            choice = input("Ваш выбор: ")
+
+            if choice == "1":
+                rooms_cleared += 1
+                print(f"\nВы входите в комнату #{rooms_cleared} на уровне {current_level}.")
+
+                # Если это уровень с боссом и первая комната — вызов босса
+                if current_level in [5, 10] and rooms_cleared == 1:
+                    boss_candidates = [e for e in DUNGEON_LEVELS[current_level - 1] if e.get("is_boss", False)]
+                    if boss_candidates:
+                        enemy = boss_candidates[0].copy()
+                        print(f"⚠️ На этом уровне вас ждёт босс: {enemy['name']}!")
+                        combat(player, enemy)
+                        show_status(player)
+                    else:
+                        print("Ошибка: босс не найден.")
+                        exit()
+                    continue  # После боя с боссом мы выходим из цикла
+
+                # Случайные встречи
+                event_chance = random.random()
+
+                if event_chance < 0.6:  # 60% — бой
+                    possible_enemies = [e for e in DUNGEON_LEVELS[current_level - 1] if not e.get("is_boss", False)]
+                    if possible_enemies:
+                        enemy = random.choice(possible_enemies).copy()
+                        combat(player, enemy)
+                    else:
+                        print("Вы входите в комнату... но здесь тихо.")
+
+                elif event_chance < 0.8:  # 20% — встречаете NPC
+                    encounter_npc(player)
+
+                else:  # 20% — находите сундук
+                    print("Вы находите сундук!")
+                    open_chest(player)
+
+            elif choice == "2":
+                print("Вы отдыхаете и восстанавливаете немного здоровья.")
+                heal_amount = min(3, player["max_hp"] - player["current_hp"])
+                player["current_hp"] += heal_amount
+                print(f"Вы восстановили {heal_amount} HP.")
+
+                if current_level >= 3 and random.random() < 0.3:
+                    print("Во время отдыха вас атакует враг!")
+                    enemy = random.choice(DUNGEON_LEVELS[current_level - 1]).copy()
+                    combat(player, enemy)
+                else:
+                    show_status(player)
+
+            elif choice == "3":
+                use_item(player)
+
+            elif choice == "4":
+                save_game(player)
+
+            elif choice == "5":
+                print("До новых приключений!")
+                return
+
+            else:
+                print("Неверный выбор. Попробуйте снова.")
+
+        print(f"\nВы прошли уровень {current_level}!")
+        current_level += 1
+
+    print("🎉 Поздравляем! Вы прошли всё подземелье и победили финального дракона!")
+    input("Нажмите Enter для выхода...")
+
+def special_boss_loot(player, enemy):
+    item = random.choice(BOSS_LOOT)
+    print(f"Вы находите мощный предмет: {item}!")
+    player["inventory"].append(item)
+
+    ITEMS.update({
+    "огненный меч": {"type": "melee", "attack_bonus": 4},
+    "ледяной посох": {"type": "magic", "attack_bonus": 5},
+    "щит короля": {"type": "melee", "armor": 5},
+    "плащ невидимости": {"type": "ranged", "armor": 4},
+    "древний лук": {"type": "ranged", "attack_bonus": 5}
+})
+
+def encounter_npc(player):
+    npc = random.choice(NPCS)
+    print(f"\nВы встретили {npc['name']}!")
+    print(f"{npc['name']} предлагает вам задание: '{npc['quest']}'")
+    choice = input("Принять задание? (да/нет): ").lower()
+    if choice != "да":
+        print("Вы отказались от задания.")
+        return
+
+    print("Вы приняли задание.")
+
+    # Пример простых условий заданий
+    if "убейте" in npc["quest"]:
+        print("Задача: победите 1 врага.")
+        enemy = random.choice(DUNGEON_LEVELS[player["level"] % len(DUNGEON_LEVELS)]).copy()
+        if combat(player, enemy):
+            print("Вы выполнили задание!")
+            player["experience"] += npc.get("reward_exp", 0)
+            player["gold"] += npc.get("reward_gold", 0)
+            if "reward_item" in npc:
+                player["inventory"].append(npc["reward_item"])
+                print(f"Награда: получено {npc['reward_item']}")
+
+    elif "найдите" in npc["quest"]:
+        print("Задача: найдите зелье здоровья.")
+        found = False
+        for _ in range(3):
+            if random.random() < 0.4:
+                print("Вы нашли зелье здоровья!")
+                player["inventory"].append("зелье здоровья")
+                found = True
+                break
+            else:
+                input("Искать дальше... Нажмите Enter.")
+        if found:
+            player["experience"] += npc.get("reward_exp", 0)
+            player["gold"] += npc.get("reward_gold", 0)
+            print("Вы выполнили задание!")
+
+    elif "не используйте" in npc["quest"]:
+        print("Задача: пройдите бой без использования предметов.")
+        enemy = random.choice(DUNGEON_LEVELS[player["level"] % len(DUNGEON_LEVELS)]).copy()
+        use_item_before = player["inventory"][:]
+        won = combat(player, enemy)
+        if won and use_item_before == player["inventory"]:
+            print("Вы не использовали предметы — задание выполнено!")
+            player["experience"] += npc.get("reward_exp", 0)
+            if "reward_item" in npc:
+                player["inventory"].append(npc["reward_item"])
+
+    elif "без боя" in npc["quest"]:
+        print("Задача: пройдите уровень без боя.")
+        print("⚠️ Это задание будет проверено в конце уровня.")
+        player["current_quest"] = "no_combat"
+        player["quest_complete"] = False
+
 # === ЗАПУСК ИГРЫ ===
 def main():
     print("=== Добро пожаловать в Подземелье ===\n")
