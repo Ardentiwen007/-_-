@@ -208,6 +208,81 @@ def level_up(player):
             exit()
         exp_needed = player["level"] * 20 
 
+# === СУНДУКИ И ИНВЕНТАРЬ ===
+def open_chest(player):
+    allowed_types = CLASS_ALLOWED_ITEMS[player["class"]]
+    possible_items = [name for name, data in ITEMS.items() if data["type"] in allowed_types]
+    
+    if not possible_items:
+        print("Вы ничего не нашли — сундук пуст.")
+        return
+
+    item = random.choice(possible_items)
+    print(f"Вы нашли: {item}!")
+    if input("Взять? (да/нет): ").lower() == "да":
+        player["inventory"].append(item)
+        print(f"{item} добавлен в инвентарь.")
+
+
+def use_item(player):
+    if not player["inventory"]:
+        print("Инвентарь пуст.")
+        return
+
+    allowed_types = CLASS_ALLOWED_ITEMS[player["class"]]
+    print("Инвентарь:")
+    valid_indices = []
+    for i, item_name in enumerate(player["inventory"]):
+        item_type = ITEMS[item_name]["type"]
+        if item_type in allowed_types:
+            print(f"{i+1}. {item_name} ({item_type})")
+            valid_indices.append(i)
+        else:
+            print(f"{i+1}. {item_name} (заблокировано для вашего класса)")
+
+    try:
+        choice = int(input("Выберите номер предмета: ")) - 1
+        if choice not in valid_indices:
+            print("Вы не можете использовать этот предмет.")
+            return
+
+        item_name = player["inventory"][choice]
+        item = ITEMS[item_name]
+
+        if "heal" in item:
+            healed = min(item["heal"], player["max_hp"] - player["current_hp"])
+            player["current_hp"] += healed
+            print(f"Вы восстановили {healed} HP.")
+
+        if "attack_bonus" in item:
+            player["attack_bonus"] += item["attack_bonus"]
+            print(f"Атака увеличена на {item['attack_bonus']}.")
+
+        if "armor" in item:
+            player["armor"] += item["armor"]
+            print(f"Броня увеличена на {item['armor']}.")
+
+        print("Предмет использован.")
+        player["inventory"].pop(choice)
+
+    except (IndexError, ValueError):
+        print("Неверный выбор.")
+
+def loot_gold(player, enemy):
+    gold = enemy.get("gold", 0)
+    if gold > 0:
+        print(f"{enemy['name']} оставил {gold} золотых.")
+        player["gold"] += gold
+
+def show_status(player):
+    print(f"\n--- Статус персонажа ---")
+    print(f"Класс: {player['class'].capitalize()}")
+    print(f"HP: {player['current_hp']}/{player['max_hp']}")
+    print(f"Броня: {player['armor']}")
+    print(f"Атака: +{player['attack_bonus']}")
+    print(f"Золото: {player['gold']} монет")
+    print(f"Уровень: {player['level']} | Опыт: {player['experience']}")
+    print("------------------------\n")
 
 # === ЗАПУСК ИГРЫ ===
 def main():
